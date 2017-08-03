@@ -1,41 +1,49 @@
 #include <malloc.h>
 #include "RTMPWrapper.h"
 
-int RTMPWrapper::initialize(char *url, int w, int h, int timeOut)
+int RTMPWrapper::initialize(char *url, int timeOut)
 {
     RTMP_LogSetLevel(RTMP_LOGDEBUG);
+
     rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
-    debug_print("time out = %d",timeOut);
     rtmp->Link.timeout = timeOut;
     RTMP_SetupURL(rtmp, url);
     RTMP_EnableWrite(rtmp);
 
-    if (!RTMP_Connect(rtmp, NULL) ) {
-        debug_print("RTMP_Connect error");
-        return -1;
-    }
-    debug_print("RTMP_Connect success.");
+    debug_print("Initialized RTMP !!!");
 
-    if (!RTMP_ConnectStream(rtmp, 0)) {
-        debug_print("RTMP_ConnectStream error");
-        return -1;
-    }
-
-    debug_print("RTMP_ConnectStream success.");
     return 0;
 }
 
-int RTMPWrapper::sendSpsAndPps(BYTE *sps, int spsLen, BYTE *pps, int ppsLen, long timestamp) {
+int RTMPWrapper::connect()
+{
+    if (!RTMP_Connect(rtmp, NULL) ) {
+        debug_print("Connect failure !!!");
+        return -1;
+    }
 
-    int i;
+    debug_print("Connected with server !!!");
+
+    if (!RTMP_ConnectStream(rtmp, 0)) {
+        debug_print("Connect stream failure !!!");
+        return -1;
+    }
+
+    debug_print("Connected stream !!!");
+
+    return 0;
+}
+
+int RTMPWrapper::sendSPSAndPPS(BYTE *sps, int spsLength, BYTE *pps, int ppsLength)
+{
     RTMPPacket *packet = (RTMPPacket *) malloc(RTMP_HEAD_SIZE + 1024);
     memset(packet, 0, RTMP_HEAD_SIZE);
     packet->m_body = (char *) packet + RTMP_HEAD_SIZE;
     BYTE *body = (BYTE *) packet->m_body;
 
-    i = 0;
-    body[i++] = 0x17; //1:keyframe 7:AVC
+    int i = 0;
+    body[i++] = 0x17; // 1:keyframe 7:AVC
     body[i++] = 0x00; // AVC sequence header
 
     body[i++] = 0x00;
@@ -43,32 +51,32 @@ int RTMPWrapper::sendSpsAndPps(BYTE *sps, int spsLen, BYTE *pps, int ppsLen, lon
     body[i++] = 0x00; //fill in 0
 
     /*AVCDecoderConfigurationRecord*/
-    body[i++] = 0x01;
-    body[i++] = sps[1]; //AVCProfileIndecation
-    body[i++] = sps[2]; //profile_compatibilty
-    body[i++] = sps[3]; //AVCLevelIndication
-    body[i++] = 0xff;//lengthSizeMinusOne
+    body[i++] = 0x01;   // version
+    body[i++] = sps[1]; // AVCProfileIndecation
+    body[i++] = sps[2]; // profile_compatibilty
+    body[i++] = sps[3]; // AVCLevelIndication
+    body[i++] = 0xff;   // lengthSizeMinusOne
 
     /*SPS*/
     body[i++] = 0xe1;
-    body[i++] = (spsLen >> 8) & 0xff;
-    body[i++] = spsLen & 0xff;
+    body[i++] = (spsLength >> 8) & 0xff;
+    body[i++] = spsLength & 0xff;
     /*sps data*/
-    memcpy(&body[i], sps, spsLen);
+    memcpy(&body[i], sps, spsLength);
 
-    i += spsLen;
+    i += spsLength;
 
     /*PPS*/
     body[i++] = 0x01;
     /*sps data length*/
-    body[i++] = (ppsLen >> 8) & 0xff;
-    body[i++] = ppsLen & 0xff;
-    memcpy(&body[i], pps, ppsLen);
-    i += ppsLen;
+    body[i++] = (ppsLength >> 8) & 0xff;
+    body[i++] = ppsLength & 0xff;
+    memcpy(&body[i], pps, ppsLength);
+    i += ppsLength;
 
     packet->m_packetType = RTMP_PACKET_TYPE_VIDEO;
     packet->m_nBodySize = i;
-    packet->m_nChannel = 0x04;
+    packet->m_nChannel = STREAM_CHANNEL_VIDEO;
     packet->m_nTimeStamp = 0;
     packet->m_hasAbsTimestamp = 0;
     packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;

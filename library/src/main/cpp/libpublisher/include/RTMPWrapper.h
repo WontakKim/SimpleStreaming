@@ -57,9 +57,11 @@ class RTMPWrapper
     public:
         ~RTMPWrapper();
 
-        int initialize(char *url, int w, int h, int timeOut);
+        int initialize(char *url, int timeOut);
 
-        int sendSpsAndPps(BYTE *sps, int spsLen, BYTE *pps, int ppsLen, long timestamp);
+        int connect();
+
+        int sendSPSAndPPS(BYTE *sps, int spsLength, BYTE *pps, int ppsLength);
 
         int sendVideoData(BYTE *data, int len, long timestamp);
 
