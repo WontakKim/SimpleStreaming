@@ -32,17 +32,13 @@ public class CameraFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
         unbinder = ButterKnife.bind(this, view);
-
         preview.setPreviewResolution(640, 360);
-        preview.startCamera();
-
         return view;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        preview.stopCamera();
         unbinder.unbind();
     }
 }
