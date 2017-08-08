@@ -35,6 +35,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     public CameraPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        getHolder().addCallback(this);
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -158,8 +160,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         camera.setParameters(params);
         camera.setDisplayOrientation(previewRotation);
-
-        getHolder().addCallback(this);
 
         return true;
     }
