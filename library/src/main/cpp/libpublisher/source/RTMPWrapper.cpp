@@ -18,14 +18,16 @@ int RTMPWrapper::initialize(char *url, int timeOut)
 
 int RTMPWrapper::connect()
 {
-    if (!RTMP_Connect(rtmp, NULL) ) {
+    if (!RTMP_Connect(rtmp, NULL))
+    {
         debug_print("Connect failure !!!");
         return -1;
     }
 
     debug_print("Connected with server !!!");
 
-    if (!RTMP_ConnectStream(rtmp, 0)) {
+    if (!RTMP_ConnectStream(rtmp, 0))
+    {
         debug_print("Connect stream failure !!!");
         return -1;
     }
@@ -35,62 +37,67 @@ int RTMPWrapper::connect()
     return 0;
 }
 
-int RTMPWrapper::sendSPSAndPPS(BYTE *sps, int spsLength, BYTE *pps, int ppsLength)
+int RTMPWrapper::sendSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength)
 {
-    RTMPPacket *packet = (RTMPPacket *) malloc(RTMP_HEAD_SIZE + 1024);
-    memset(packet, 0, RTMP_HEAD_SIZE);
-    packet->m_body = (char *) packet + RTMP_HEAD_SIZE;
-    BYTE *body = (BYTE *) packet->m_body;
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
+    memset(packet, 0, sizeof(RTMPPacket));
 
-    int i = 0;
-    body[i++] = 0x17; // 1:keyframe 7:AVC
-    body[i++] = 0x00; // AVC sequence header
-
-    body[i++] = 0x00;
-    body[i++] = 0x00;
-    body[i++] = 0x00; //fill in 0
-
-    /*AVCDecoderConfigurationRecord*/
-    body[i++] = 0x01;   // version
-    body[i++] = sps[1]; // AVCProfileIndecation
-    body[i++] = sps[2]; // profile_compatibilty
-    body[i++] = sps[3]; // AVCLevelIndication
-    body[i++] = 0xff;   // lengthSizeMinusOne
-
-    /*SPS*/
-    body[i++] = 0xe1;
-    body[i++] = (spsLength >> 8) & 0xff;
-    body[i++] = spsLength & 0xff;
-    /*sps data*/
-    memcpy(&body[i], sps, spsLength);
-
-    i += spsLength;
-
-    /*PPS*/
-    body[i++] = 0x01;
-    /*sps data length*/
-    body[i++] = (ppsLength >> 8) & 0xff;
-    body[i++] = ppsLength & 0xff;
-    memcpy(&body[i], pps, ppsLength);
-    i += ppsLength;
-
+    packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
     packet->m_packetType = RTMP_PACKET_TYPE_VIDEO;
-    packet->m_nBodySize = i;
+    packet->m_hasAbsTimestamp = 0;
     packet->m_nChannel = STREAM_CHANNEL_VIDEO;
     packet->m_nTimeStamp = 0;
-    packet->m_hasAbsTimestamp = 0;
-    packet->m_headerType = RTMP_PACKET_SIZE_MEDIUM;
     packet->m_nInfoField2 = rtmp->m_stream_id;
+    packet->m_nBodySize = spsLength + ppsLength + 16;
+    packet->m_body = (char *) malloc(packet->m_nBodySize);
 
-    /*发送*/
-    if (RTMP_IsConnected(rtmp)) {
+    int index = 0;
+    uint8_t *body = (uint8_t *) packet->m_body;
+
+    body[index++] = 0x17; // 1:Key Frame 7:AVC (H.264)
+    body[index++] = 0x00; // AVC sequence header
+
+    /* Start Time */
+    body[index++] = 0x00;
+    body[index++] = 0x00;
+    body[index++] = 0x00;
+
+    /* AVC Decoder Configuration Record */
+    body[index++] = 0x01;   // Configuration Version
+    body[index++] = sps[1]; // AVC Profile Indication
+    body[index++] = sps[2]; // Profile Compatibility
+    body[index++] = sps[3]; // AVC Level Indication
+    body[index++] = 0xFF;   // Length Size Minus One
+
+    /* Sequence Parameter Sets */
+    body[index++] = 0xE1; // Num Of Sequence Parameter Sets
+    /* SPS Length */
+    body[index++] = (spsLength >> 8) & 0xFF;
+    body[index++] = spsLength & 0xFF;
+    /* SPS Data*/
+    memcpy(&body[index], sps, spsLength);
+    index += spsLength;
+
+    /* Picture Parameter Sets */
+    body[index++] = 0x01; // Num Of Picture Parameter Sets
+    /* PPS Length */
+    body[index++] = (ppsLength >> 8) & 0xFF;
+    body[index++] = ppsLength & 0xFF;
+    /* PPS Data */
+    memcpy(&body[index], pps, ppsLength);
+
+    if (RTMP_IsConnected(rtmp))
+    {
         RTMP_SendPacket(rtmp, packet, TRUE);
     }
+
+    free(packet->m_body);
     free(packet);
+
     return 0;
 }
 
-int RTMPWrapper::sendVideoData(BYTE *buf, int len, long timestamp) {
+int RTMPWrapper::sendVideoData(uint8_t *buf, int len, long timestamp) {
     int type;
 
     /*去掉帧界定符*/
@@ -104,14 +111,14 @@ int RTMPWrapper::sendVideoData(BYTE *buf, int len, long timestamp) {
 
     type = buf[0] & 0x1f;
 
-    RTMPPacket *packet = (RTMPPacket *) malloc(RTMP_HEAD_SIZE + len + 9);
-    memset(packet, 0, RTMP_HEAD_SIZE);
-    packet->m_body = (char *) packet + RTMP_HEAD_SIZE;
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket) + len + 9);
+    memset(packet, 0, sizeof(RTMPPacket));
+    packet->m_body = (char *) packet + sizeof(RTMPPacket);
     packet->m_nBodySize = len + 9;
 
 
     /* send video packet*/
-    BYTE *body = (BYTE *) packet->m_body;
+    uint8_t *body = (uint8_t *) packet->m_body;
     memset(body, 0, len + 9);
 
     /*key frame*/
@@ -148,14 +155,14 @@ int RTMPWrapper::sendVideoData(BYTE *buf, int len, long timestamp) {
     return 0;
 }
 
-int RTMPWrapper::sendAacSpec(BYTE *data, int spec_len) {
+int RTMPWrapper::sendAacSpec(uint8_t *data, int spec_len) {
     RTMPPacket *packet;
-    BYTE *body;
+    uint8_t *body;
     int len = spec_len;//spec len 是2
-    packet = (RTMPPacket *) malloc(RTMP_HEAD_SIZE + len + 2);
-    memset(packet, 0, RTMP_HEAD_SIZE);
-    packet->m_body = (char *) packet + RTMP_HEAD_SIZE;
-    body = (BYTE *) packet->m_body;
+    packet = (RTMPPacket *) malloc(sizeof(RTMPPacket) + len + 2);
+    memset(packet, 0, sizeof(RTMPPacket));
+    packet->m_body = (char *) packet + sizeof(RTMPPacket);
+    body = (uint8_t *) packet->m_body;
 
     /*AF 00 +AAC RAW data*/
     body[0] = 0xAF;
@@ -178,16 +185,16 @@ int RTMPWrapper::sendAacSpec(BYTE *data, int spec_len) {
     return 0;
 }
 
-int RTMPWrapper::sendAacData(BYTE *data, int len, long timeOffset) {
+int RTMPWrapper::sendAacData(uint8_t *data, int len, long timeOffset) {
 //    data += 5;
 //    len += 5;
     if (len > 0) {
         RTMPPacket *packet;
-        BYTE *body;
-        packet = (RTMPPacket *) malloc(RTMP_HEAD_SIZE + len + 2);
-        memset(packet, 0, RTMP_HEAD_SIZE);
-        packet->m_body = (char *) packet + RTMP_HEAD_SIZE;
-        body = (BYTE *) packet->m_body;
+        uint8_t *body;
+        packet = (RTMPPacket *) malloc(sizeof(RTMPPacket) + len + 2);
+        memset(packet, 0, sizeof(RTMPPacket));
+        packet->m_body = (char *) packet + sizeof(RTMPPacket);
+        body = (uint8_t *) packet->m_body;
 
         /*AF 00 +AAC Raw data*/
         body[0] = 0xAF;

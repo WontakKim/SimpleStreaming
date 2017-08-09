@@ -30,10 +30,6 @@ extern "C" {
 }
 #endif
 
-#define BYTE uint8_t
-
-#define RTMP_HEAD_SIZE (sizeof(RTMPPacket) + RTMP_MAX_HEADER_SIZE)
-
 #define NAL_SLICE       1
 #define NAL_SLICE_DPA   2
 #define NAL_SLICE_DPB   3
@@ -61,7 +57,7 @@ class RTMPWrapper
 
         int connect();
 
-        int sendSPSAndPPS(BYTE *sps, int spsLength, BYTE *pps, int ppsLength);
+        int sendSpsAndPps(BYTE *sps, int spsLength, BYTE *pps, int ppsLength);
 
         int sendVideoData(BYTE *data, int len, long timestamp);
 
