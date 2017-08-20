@@ -26,7 +26,8 @@ LOCAL_SRC_FILES := \
     source/scale_any.cc         \
     source/scale_argb.cc        \
     source/scale_common.cc      \
-    source/video_common.cc
+    source/video_common.cc			\
+    source/yuv-jni.cc
 
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
     LOCAL_ARM_NEON := true
@@ -45,7 +46,7 @@ ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
         source/compare_neon64.cc    \
         source/rotate_neon64.cc     \
         source/row_neon64.cc        \
-        source/scale_neon64.cc 
+        source/scale_neon64.cc
 endif
 
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), x86 x86_64))

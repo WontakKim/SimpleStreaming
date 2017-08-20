@@ -396,7 +396,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     printf("JNI_OnLoad called!!!");
 
-    jclass clz = jenv->FindClass("com/googlesource/chromium/libyuv/YuvI420Converter");
+    jclass clz = jenv->FindClass("com/github/wontakkim/simplestreaming/YuvI420Converter");
     if (clz == NULL) {
         return JNI_ERR;
     }
