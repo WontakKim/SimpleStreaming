@@ -184,31 +184,36 @@ int RTMPWrapper::sendVideoData(uint8_t *data, int length, long timestamp)
     return 0;
 }
 
-int RTMPWrapper::sendAacSpec(uint8_t *data, int length) {
-    RTMPPacket *packet;
-    uint8_t *body;
-    // int len = length;//spec len 是2
-    packet = (RTMPPacket *) malloc(sizeof(RTMPPacket) + length + 2);
+int RTMPWrapper::sendAacSpec(uint8_t *data, int length)
+{
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
-    packet->m_body = (char *) packet + sizeof(RTMPPacket);
-    body = (uint8_t *) packet->m_body;
 
-    /*AF 00 +AAC RAW data*/
-    body[0] = 0xAF;
-    body[1] = 0x00;
-    memcpy(&body[2], data, length);/*data 是AAC sequence header数据*/
-
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
     packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
-    packet->m_nBodySize = length + 2;
+    packet->m_hasAbsTimestamp = 0;
     packet->m_nChannel = STREAM_CHANNEL_AUDIO;
     packet->m_nTimeStamp = 0;
-    packet->m_hasAbsTimestamp = 0;
-    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
     packet->m_nInfoField2 = rtmp->m_stream_id;
+    packet->m_nBodySize = length + 2;
+    packet->m_body = (char *) malloc(packet->m_nBodySize);
+    memset(packet->m_body, 0, packet->m_nBodySize);
 
-    if (RTMP_IsConnected(rtmp)) {
+    uint8_t *body = (uint8_t *) packet->m_body;
+
+    /* AAC RAW data */
+    body[0] = 0xAF;
+    body[1] = 0x00;
+
+    /* AAC Spec data */
+    memcpy(&body[2], data, length);
+
+    if (RTMP_IsConnected(rtmp))
+    {
         RTMP_SendPacket(rtmp, packet, TRUE);
     }
+
+    free(packet->m_body);
     free(packet);
 
     return 0;
