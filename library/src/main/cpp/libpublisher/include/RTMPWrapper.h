@@ -57,13 +57,13 @@ class RTMPWrapper
 
         int connect();
 
-        int sendSpsAndPps(BYTE *sps, int spsLength, BYTE *pps, int ppsLength);
+        int sendVideoSpsAndPps(BYTE *sps, int spsLength, BYTE *pps, int ppsLength);
 
-        int sendVideoData(BYTE *data, int len, long timestamp);
+        int sendVideoData(BYTE *data, int length, long timestamp);
 
-        int sendAacSpec(BYTE *data, int len);
+        int sendAacSpec(BYTE *data, int length);
 
-        int sendAacData(BYTE *data, int len,long timestamp);
+        int sendAacData(BYTE *data, int length, long timestamp);
 
         int stop() const;
 };
