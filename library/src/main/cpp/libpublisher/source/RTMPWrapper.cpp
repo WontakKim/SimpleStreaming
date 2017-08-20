@@ -170,7 +170,7 @@ int RTMPWrapper::sendVideoData(uint8_t *data, int length, long timestamp)
     body[7] = (length >> 8) & 0xff;
     body[8] = (length) & 0xff;
 
-    /* Video data */
+    /* Video Data */
     memcpy(&body[9], data, length);
 
     if (RTMP_IsConnected(rtmp))
@@ -201,11 +201,11 @@ int RTMPWrapper::sendAacSpec(uint8_t *data, int length)
 
     uint8_t *body = (uint8_t *) packet->m_body;
 
-    /* AAC RAW data */
+    /* AAC RAW Data */
     body[0] = 0xAF;
     body[1] = 0x00;
 
-    /* AAC Spec data */
+    /* AAC Spec Data */
     memcpy(&body[2], data, length);
 
     if (RTMP_IsConnected(rtmp))
@@ -219,44 +219,49 @@ int RTMPWrapper::sendAacSpec(uint8_t *data, int length)
     return 0;
 }
 
-int RTMPWrapper::sendAacData(uint8_t *data, int len, long timeOffset) {
-//    data += 5;
-//    len += 5;
-    if (len > 0) {
-        RTMPPacket *packet;
-        uint8_t *body;
-        packet = (RTMPPacket *) malloc(sizeof(RTMPPacket) + len + 2);
-        memset(packet, 0, sizeof(RTMPPacket));
-        packet->m_body = (char *) packet + sizeof(RTMPPacket);
-        body = (uint8_t *) packet->m_body;
+int RTMPWrapper::sendAacData(uint8_t *data, int length, long timestamp)
+{
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
+    memset(packet, 0, sizeof(RTMPPacket));
 
-        /*AF 00 +AAC Raw data*/
-        body[0] = 0xAF;
-        body[1] = 0x01;
-        memcpy(&body[2], data, len);
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    packet->m_hasAbsTimestamp = 0;
+    packet->m_nChannel = STREAM_CHANNEL_AUDIO;
+    packet->m_nTimeStamp = timestamp;
+    packet->m_nInfoField2 = rtmp->m_stream_id;
+    packet->m_nBodySize = length + 2;
+    packet->m_body = (char *) malloc(packet->m_nBodySize);
+    memset(packet->m_body, 0, packet->m_nBodySize);
 
-        packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
-        packet->m_nBodySize = len + 2;
-        packet->m_nChannel = STREAM_CHANNEL_AUDIO;
-        packet->m_nTimeStamp = timeOffset;
-        packet->m_hasAbsTimestamp = 0;
-        packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
-        packet->m_nInfoField2 = rtmp->m_stream_id;
-        if (RTMP_IsConnected(rtmp)) {
-            RTMP_SendPacket(rtmp, packet, TRUE);
-        }
-        free(packet);
+    uint8_t *body = (uint8_t *) packet->m_body;
 
+    /* AAC RAW Data */
+    body[0] = 0xAF;
+    body[1] = 0x00;
+
+    /* AAC Data */
+    memcpy(&body[2], data, length);
+
+    if (RTMP_IsConnected(rtmp))
+    {
+        RTMP_SendPacket(rtmp, packet, TRUE);
     }
+
+    free(packet->m_body);
+    free(packet);
+
     return 0;
 }
 
-int RTMPWrapper::stop() const {
+int RTMPWrapper::stop() const
+{
     RTMP_Close(rtmp);
     RTMP_Free(rtmp);
     return 0;
 }
 
-RTMPWrapper::~RTMPWrapper() {
+RTMPWrapper::~RTMPWrapper()
+{
     stop();
 }
