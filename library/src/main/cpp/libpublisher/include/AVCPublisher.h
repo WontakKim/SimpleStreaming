@@ -1,5 +1,5 @@
-#ifndef RTMP_WRAPPER_H
-#define RTMP_WRAPPER_H
+#ifndef AVC_PUBLISHER_H
+#define AVC_PUBLISHER_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -45,27 +45,27 @@ extern "C" {
 #define STREAM_CHANNEL_VIDEO     0x04
 #define STREAM_CHANNEL_AUDIO     0x05
 
-class RTMPWrapper
-{
+class AVCPublisher {
+
     private:
         RTMP *rtmp;
 
     public:
-        ~RTMPWrapper();
+        ~AVCPublisher();
 
         int initialize(char *url, int timeOut);
 
+        int release() const;
+
         int connect();
 
-        int sendVideoSpsAndPps(BYTE *sps, int spsLength, BYTE *pps, int ppsLength);
+        int sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength);
 
-        int sendVideoData(BYTE *data, int length, long timestamp);
+        int sendVideoData(uint8_t *data, int length, long timestamp);
 
-        int sendAacSpec(BYTE *data, int length);
+        int sendAacSpec(uint8_t *data, int length);
 
-        int sendAacData(BYTE *data, int length, long timestamp);
-
-        int stop() const;
+        int sendAacData(uint8_t *data, int length, long timestamp);
 };
 
-#endif // RTMP_WRAPPER_H
+#endif // AVC_PUBLISHER_H

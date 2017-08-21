@@ -1,13 +1,16 @@
 #include <malloc.h>
-#include "RTMPWrapper.h"
+#include "AVCPublisher.h"
 
-int RTMPWrapper::initialize(char *url, int timeOut)
-{
+AVCPublisher::~AVCPublisher() {
+    release();
+}
+
+int AVCPublisher::initialize(char *url, int timeout) {
     RTMP_LogSetLevel(RTMP_LOGDEBUG);
 
     rtmp = RTMP_Alloc();
     RTMP_Init(rtmp);
-    rtmp->Link.timeout = timeOut;
+    rtmp->Link.timeout = timeout;
     RTMP_SetupURL(rtmp, url);
     RTMP_EnableWrite(rtmp);
 
@@ -16,18 +19,21 @@ int RTMPWrapper::initialize(char *url, int timeOut)
     return 0;
 }
 
-int RTMPWrapper::connect()
-{
-    if (!RTMP_Connect(rtmp, NULL))
-    {
+int AVCPublisher::release() const {
+    RTMP_Close(rtmp);
+    RTMP_Free(rtmp);
+    return 0;
+}
+
+int AVCPublisher::connect() {
+    if (!RTMP_Connect(rtmp, NULL)) {
         debug_print("Connect failure !!!");
         return -1;
     }
 
     debug_print("Connected with server !!!");
 
-    if (!RTMP_ConnectStream(rtmp, 0))
-    {
+    if (!RTMP_ConnectStream(rtmp, 0)) {
         debug_print("Connect stream failure !!!");
         return -1;
     }
@@ -37,15 +43,13 @@ int RTMPWrapper::connect()
     return 0;
 }
 
-int RTMPWrapper::sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength)
-{
+int AVCPublisher::sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
     /* Remove SPS NAL start prefix code */
     int spsNALStartPrefixBytes = 4; // 00 00 00 01 : 4 bytes
-    if (sps[2] == 0x01) // 00 00 01 : 3 bytes
-    {
+    if (sps[2] == 0x01) { // 00 00 01 : 3 bytes
         spsNALStartPrefixBytes = 3;
     }
 
@@ -54,8 +58,7 @@ int RTMPWrapper::sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, i
 
     /* Remove PPS NAL start prefix code */
     int ppsNALStartPrefixBytes = 4; // 00 00 00 01 : 4 bytes
-    if (pps[2] == 0x01) // 00 00 01 : 3 bytes
-    {
+    if (pps[2] == 0x01) { // 00 00 01 : 3 bytes
         ppsNALStartPrefixBytes = 3;
     }
 
@@ -107,8 +110,7 @@ int RTMPWrapper::sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, i
     /* PPS Data */
     memcpy(&body[index], pps, ppsLength);
 
-    if (RTMP_IsConnected(rtmp))
-    {
+    if (RTMP_IsConnected(rtmp)) {
         RTMP_SendPacket(rtmp, packet, TRUE);
     }
 
@@ -118,15 +120,13 @@ int RTMPWrapper::sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, i
     return 0;
 }
 
-int RTMPWrapper::sendVideoData(uint8_t *data, int length, long timestamp)
-{
+int AVCPublisher::sendVideoData(uint8_t *data, int length, long timestamp) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
     /* Remove NAL start prefix code */
     int nalStartPrefixBytes = 4; // 00 00 00 01 : 4 bytes
-    if (data[2] == 0x01) // 00 00 01 : 3 bytes
-    {
+    if (data[2] == 0x01) { // 00 00 01 : 3 bytes
         nalStartPrefixBytes = 3;
     }
 
@@ -149,12 +149,9 @@ int RTMPWrapper::sendVideoData(uint8_t *data, int length, long timestamp)
 
     // Key Frame
     body[0] = 0x27;
-    if (type == NAL_SLICE_IDR)
-    {
+    if (type == NAL_SLICE_IDR) {
         body[0] = 0x17;
-    }
-    else if (type == NAL_SEI)
-    {
+    } else if (type == NAL_SEI) {
         free(body);
         free(packet);
         return 0;
@@ -173,8 +170,7 @@ int RTMPWrapper::sendVideoData(uint8_t *data, int length, long timestamp)
     /* Video Data */
     memcpy(&body[9], data, length);
 
-    if (RTMP_IsConnected(rtmp))
-    {
+    if (RTMP_IsConnected(rtmp)) {
         RTMP_SendPacket(rtmp, packet, TRUE);
     }
 
@@ -184,8 +180,7 @@ int RTMPWrapper::sendVideoData(uint8_t *data, int length, long timestamp)
     return 0;
 }
 
-int RTMPWrapper::sendAacSpec(uint8_t *data, int length)
-{
+int AVCPublisher::sendAacSpec(uint8_t *data, int length) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
@@ -208,8 +203,7 @@ int RTMPWrapper::sendAacSpec(uint8_t *data, int length)
     /* AAC Spec Data */
     memcpy(&body[2], data, length);
 
-    if (RTMP_IsConnected(rtmp))
-    {
+    if (RTMP_IsConnected(rtmp)) {
         RTMP_SendPacket(rtmp, packet, TRUE);
     }
 
@@ -219,8 +213,7 @@ int RTMPWrapper::sendAacSpec(uint8_t *data, int length)
     return 0;
 }
 
-int RTMPWrapper::sendAacData(uint8_t *data, int length, long timestamp)
-{
+int AVCPublisher::sendAacData(uint8_t *data, int length, long timestamp) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
@@ -243,8 +236,7 @@ int RTMPWrapper::sendAacData(uint8_t *data, int length, long timestamp)
     /* AAC Data */
     memcpy(&body[2], data, length);
 
-    if (RTMP_IsConnected(rtmp))
-    {
+    if (RTMP_IsConnected(rtmp)) {
         RTMP_SendPacket(rtmp, packet, TRUE);
     }
 
@@ -252,16 +244,4 @@ int RTMPWrapper::sendAacData(uint8_t *data, int length, long timestamp)
     free(packet);
 
     return 0;
-}
-
-int RTMPWrapper::stop() const
-{
-    RTMP_Close(rtmp);
-    RTMP_Free(rtmp);
-    return 0;
-}
-
-RTMPWrapper::~RTMPWrapper()
-{
-    stop();
 }
