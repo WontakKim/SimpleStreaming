@@ -13,25 +13,25 @@ libpublisher_initialize(JNIEnv *env, jobject thiz, jstring _url, jint timeout) {
     char* url_copy = (char *) malloc(strlen(url) + 1);
     strcpy(url_copy, url);
 
-    AVCPublisher *rtmp = new AVCPublisher();
-    rtmp->initialize(url_copy, timeout);
+    AVCPublisher *publisher = new AVCPublisher();
+    publisher->initialize(url_copy, timeout);
 
     free(url_copy);
     env->ReleaseStringUTFChars(_url, url);
-    return reinterpret_cast<long> (rtmp);
+    return reinterpret_cast<long> (publisher);
 }
 
 static jint
 libpublisher_release(JNIEnv *env, jobject thiz, jlong cptr) {
-    AVCPublisher *rtmp = reinterpret_cast<AVCPublisher *> (cptr);
-    delete rtmp;
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+    delete publisher;
     return 0;
 }
 
 static jint
 libpublisher_connect(JNIEnv *env, jobject thiz, jlong cptr) {
-    AVCPublisher *rtmp = reinterpret_cast<AVCPublisher *> (cptr);
-    int ret = rtmp->connect();
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+    int ret = publisher->connect();
     return ret;
 }
 
@@ -40,8 +40,8 @@ libpublisher_sendVideoData(JNIEnv *env, jobject thiz, jlong cptr,
                            jbyteArray _data, jint length, jlong timestamp) {
     jbyte *data = env->GetByteArrayElements(_data, NULL);
 
-    AVCPublisher *rtmp = reinterpret_cast<AVCPublisher *> (cptr);
-    int ret = rtmp->sendVideoData((uint8_t *) data, length, timestamp);
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+    int ret = publisher->sendVideoData((uint8_t *) data, length, timestamp);
 
     env->ReleaseByteArrayElements(_data, data, 0);
     return ret;
@@ -52,8 +52,8 @@ libpublisher_sendAacData(JNIEnv *env, jobject thiz, jlong cptr,
                            jbyteArray _data, jint length, jlong timestamp) {
     jbyte *data = env->GetByteArrayElements(_data, NULL);
 
-    AVCPublisher *rtmp = reinterpret_cast<AVCPublisher *> (cptr);
-    int ret = rtmp->sendAacData((uint8_t *) data, length, timestamp);
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+    int ret = publisher->sendAacData((uint8_t *) data, length, timestamp);
 
     env->ReleaseByteArrayElements(_data, data, 0);
     return ret;
