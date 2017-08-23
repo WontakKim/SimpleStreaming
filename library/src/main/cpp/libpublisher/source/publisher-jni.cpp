@@ -36,21 +36,6 @@ libpublisher_connect(JNIEnv *env, jobject thiz, jlong cptr) {
 }
 
 static jint
-libpublisher_sendVideoSpsAndPps(JNIEnv *env, jobject thiz, jlong cptr,
-                                jbyteArray _sps, jint spsLength,
-                                jbyteArray _pps, jint ppsLength) {
-    jbyte *sps = env->GetByteArrayElements(_sps, NULL);
-    jbyte *pps = env->GetByteArrayElements(_pps, NULL);
-
-    AVCPublisher *rtmp = reinterpret_cast<AVCPublisher *> (cptr);
-    int ret = rtmp->sendVideoSpsAndPps((uint8_t *) sps, spsLength, (uint8_t *) pps, ppsLength);
-
-    env->ReleaseByteArrayElements(_sps, sps, 0);
-    env->ReleaseByteArrayElements(_pps, pps, 0);
-    return ret;
-}
-
-static jint
 libpublisher_sendVideoData(JNIEnv *env, jobject thiz, jlong cptr,
                            jbyteArray _data, jint length, jlong timestamp) {
     jbyte *data = env->GetByteArrayElements(_data, NULL);
@@ -90,7 +75,6 @@ static JNINativeMethod libyuv_methods[] = {
         {"initialize",          "(java/lang/String;I)J",     (void *) libpublisher_initialize},
         {"release",             "(J)I",                      (void *) libpublisher_release},
         {"connect",             "(J)I",                      (void *) libpublisher_connect},
-        {"sendVideoSpsAndPps",  "(J[BI[BI)I",                (void *) libpublisher_sendVideoSpsAndPps},
         {"sendVideoData",       "(J[BIJ)I",                  (void *) libpublisher_sendVideoData},
         {"sendAacSpec",         "(J[BI)I",                   (void *) libpublisher_sendAacSpec},
         {"sendAacData",         "(J[BIJ)I",                  (void *) libpublisher_sendAacData},

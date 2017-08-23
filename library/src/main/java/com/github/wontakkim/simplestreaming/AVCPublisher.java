@@ -8,8 +8,6 @@ public class AVCPublisher {
 
     public native int connect(long cptr);
 
-    public native int sendVideoSpsAndPps(long cptr, byte[] sps, int spsLength, byte[] pps, int ppsLength);
-
     public native int sendVideoData(long cptr, byte[] data, int length, long timestamp);
 
     public native int sendAacSpec(long cptr, byte[] data, int length);

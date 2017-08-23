@@ -59,8 +59,6 @@ class AVCPublisher {
 
         int connect();
 
-        int sendVideoSpsAndPps(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength);
-
         int sendVideoData(uint8_t *data, int length, long timestamp);
 
         int sendAacSpec(uint8_t *data, int length);
