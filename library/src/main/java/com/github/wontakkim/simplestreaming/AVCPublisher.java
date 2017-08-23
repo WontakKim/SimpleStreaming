@@ -10,8 +10,6 @@ public class AVCPublisher {
 
     public native int sendVideoData(long cptr, byte[] data, int length, long timestamp);
 
-    public native int sendAacSpec(long cptr, byte[] data, int length);
-
     public native int sendAacData(long cptr, byte[] data, int length, long timestamp);
 
     static {

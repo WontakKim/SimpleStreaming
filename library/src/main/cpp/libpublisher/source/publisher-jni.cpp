@@ -48,18 +48,6 @@ libpublisher_sendVideoData(JNIEnv *env, jobject thiz, jlong cptr,
 }
 
 static jint
-libpublisher_sendAacSpec(JNIEnv *env, jobject thiz, jlong cptr,
-                           jbyteArray _data, jint length) {
-    jbyte *data = env->GetByteArrayElements(_data, NULL);
-
-    AVCPublisher *rtmp = reinterpret_cast<AVCPublisher *> (cptr);
-    int ret = rtmp->sendAacSpec((uint8_t *) data, length);
-
-    env->ReleaseByteArrayElements(_data, data, 0);
-    return ret;
-}
-
-static jint
 libpublisher_sendAacData(JNIEnv *env, jobject thiz, jlong cptr,
                            jbyteArray _data, jint length, jlong timestamp) {
     jbyte *data = env->GetByteArrayElements(_data, NULL);
@@ -76,7 +64,6 @@ static JNINativeMethod libyuv_methods[] = {
         {"release",             "(J)I",                      (void *) libpublisher_release},
         {"connect",             "(J)I",                      (void *) libpublisher_connect},
         {"sendVideoData",       "(J[BIJ)I",                  (void *) libpublisher_sendVideoData},
-        {"sendAacSpec",         "(J[BI)I",                   (void *) libpublisher_sendAacSpec},
         {"sendAacData",         "(J[BIJ)I",                  (void *) libpublisher_sendAacData},
 };
 

@@ -77,7 +77,7 @@ int AVCPublisher::sendVideoData(uint8_t *data, int length, long timestamp) {
         packet->m_packetType = RTMP_PACKET_TYPE_VIDEO;
         packet->m_hasAbsTimestamp = 0;
         packet->m_nChannel = STREAM_CHANNEL_VIDEO;
-        packet->m_nTimeStamp = timestamp;
+        packet->m_nTimeStamp = 0;
         packet->m_nInfoField2 = rtmp->m_stream_id;
         packet->m_nBodySize = spsLength + ppsLength + 16;
         packet->m_body = (char *) malloc(packet->m_nBodySize);
@@ -170,7 +170,7 @@ int AVCPublisher::sendVideoData(uint8_t *data, int length, long timestamp) {
     return 0;
 }
 
-int AVCPublisher::sendAacSpec(uint8_t *data, int length) {
+int AVCPublisher::sendAacData(uint8_t *data, int length, long timestamp) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
@@ -178,7 +178,7 @@ int AVCPublisher::sendAacSpec(uint8_t *data, int length) {
     packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
     packet->m_hasAbsTimestamp = 0;
     packet->m_nChannel = STREAM_CHANNEL_AUDIO;
-    packet->m_nTimeStamp = 0;
+    packet->m_nTimeStamp = (length == 2) ? 0 : timestamp; // 'length == 2' : AAC spec data
     packet->m_nInfoField2 = rtmp->m_stream_id;
     packet->m_nBodySize = length + 2;
     packet->m_body = (char *) malloc(packet->m_nBodySize);
@@ -191,39 +191,6 @@ int AVCPublisher::sendAacSpec(uint8_t *data, int length) {
     body[1] = 0x00;
 
     /* AAC Spec Data */
-    memcpy(&body[2], data, length);
-
-    if (RTMP_IsConnected(rtmp)) {
-        RTMP_SendPacket(rtmp, packet, TRUE);
-    }
-
-    free(packet->m_body);
-    free(packet);
-
-    return 0;
-}
-
-int AVCPublisher::sendAacData(uint8_t *data, int length, long timestamp) {
-    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
-    memset(packet, 0, sizeof(RTMPPacket));
-
-    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
-    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
-    packet->m_hasAbsTimestamp = 0;
-    packet->m_nChannel = STREAM_CHANNEL_AUDIO;
-    packet->m_nTimeStamp = timestamp;
-    packet->m_nInfoField2 = rtmp->m_stream_id;
-    packet->m_nBodySize = length + 2;
-    packet->m_body = (char *) malloc(packet->m_nBodySize);
-    memset(packet->m_body, 0, packet->m_nBodySize);
-
-    uint8_t *body = (uint8_t *) packet->m_body;
-
-    /* AAC RAW Data */
-    body[0] = 0xAF;
-    body[1] = 0x00;
-
-    /* AAC Data */
     memcpy(&body[2], data, length);
 
     if (RTMP_IsConnected(rtmp)) {

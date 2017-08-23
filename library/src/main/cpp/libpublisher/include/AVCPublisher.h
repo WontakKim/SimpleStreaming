@@ -61,8 +61,6 @@ class AVCPublisher {
 
         int sendVideoData(uint8_t *data, int length, long timestamp);
 
-        int sendAacSpec(uint8_t *data, int length);
-
         int sendAacData(uint8_t *data, int length, long timestamp);
 };
 
