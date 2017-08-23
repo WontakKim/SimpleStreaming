@@ -190,7 +190,7 @@ int AVCPublisher::sendAacData(uint8_t *data, int length, long timestamp) {
     body[0] = 0xAF;
     body[1] = 0x00;
 
-    /* AAC Spec Data */
+    /* AAC Data */
     memcpy(&body[2], data, length);
 
     if (RTMP_IsConnected(rtmp)) {
