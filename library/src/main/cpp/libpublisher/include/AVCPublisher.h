@@ -59,6 +59,8 @@ class AVCPublisher {
 
         int connect();
 
+        int isConnected();
+
         int sendVideoData(uint8_t *data, int length, long timestamp);
 
         int sendAacData(uint8_t *data, int length, long timestamp);

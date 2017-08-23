@@ -22,25 +22,32 @@ libpublisher_initialize(JNIEnv *env, jobject thiz, jstring _url, jint timeout) {
 }
 
 static jint
-libpublisher_release(JNIEnv *env, jobject thiz, jlong cptr) {
-    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+libpublisher_release(JNIEnv *env, jobject thiz, jlong pointer) {
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
     delete publisher;
     return 0;
 }
 
 static jint
-libpublisher_connect(JNIEnv *env, jobject thiz, jlong cptr) {
-    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+libpublisher_connect(JNIEnv *env, jobject thiz, jlong pointer) {
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
     int ret = publisher->connect();
     return ret;
 }
 
 static jint
-libpublisher_sendVideoData(JNIEnv *env, jobject thiz, jlong cptr,
+libpublisher_isConnected(JNIEnv *env, jobject thiz, jlong pointer) {
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
+    int ret = publisher->isConnected();
+    return ret;
+}
+
+static jint
+libpublisher_sendVideoData(JNIEnv *env, jobject thiz, jlong pointer,
                            jbyteArray _data, jint length, jlong timestamp) {
     jbyte *data = env->GetByteArrayElements(_data, NULL);
 
-    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
     int ret = publisher->sendVideoData((uint8_t *) data, length, timestamp);
 
     env->ReleaseByteArrayElements(_data, data, 0);
@@ -48,11 +55,11 @@ libpublisher_sendVideoData(JNIEnv *env, jobject thiz, jlong cptr,
 }
 
 static jint
-libpublisher_sendAacData(JNIEnv *env, jobject thiz, jlong cptr,
+libpublisher_sendAacData(JNIEnv *env, jobject thiz, jlong pointer,
                            jbyteArray _data, jint length, jlong timestamp) {
     jbyte *data = env->GetByteArrayElements(_data, NULL);
 
-    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (cptr);
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
     int ret = publisher->sendAacData((uint8_t *) data, length, timestamp);
 
     env->ReleaseByteArrayElements(_data, data, 0);
@@ -63,6 +70,7 @@ static JNINativeMethod libyuv_methods[] = {
         {"initialize",          "(java/lang/String;I)J",     (void *) libpublisher_initialize},
         {"release",             "(J)I",                      (void *) libpublisher_release},
         {"connect",             "(J)I",                      (void *) libpublisher_connect},
+        {"isConnected",         "(J)I",                      (void *) libpublisher_isConnected},
         {"sendVideoData",       "(J[BIJ)I",                  (void *) libpublisher_sendVideoData},
         {"sendAacData",         "(J[BIJ)I",                  (void *) libpublisher_sendAacData},
 };

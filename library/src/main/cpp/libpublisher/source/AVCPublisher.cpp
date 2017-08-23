@@ -43,6 +43,10 @@ int AVCPublisher::connect() {
     return 0;
 }
 
+int AVCPublisher::isConnected() {
+    return RTMP_IsConnected(rtmp);
+}
+
 int AVCPublisher::sendVideoData(uint8_t *data, int length, long timestamp) {
     /* Remove NAL start prefix bytes */
     int nalStartPrefixBytes = 4; // 00 00 00 01 : 4 bytes
