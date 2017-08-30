@@ -67,7 +67,7 @@ libpublisher_sendAacData(JNIEnv *env, jobject thiz, jlong pointer,
 }
 
 static JNINativeMethod libyuv_methods[] = {
-        {"initialize",          "(java/lang/String;I)J",     (void *) libpublisher_initialize},
+        {"initialize",          "(Ljava/lang/String;I)J",    (void *) libpublisher_initialize},
         {"release",             "(J)I",                      (void *) libpublisher_release},
         {"connect",             "(J)I",                      (void *) libpublisher_connect},
         {"isConnected",         "(J)I",                      (void *) libpublisher_isConnected},
