@@ -5,7 +5,7 @@ public class AVCPublisher {
     private long pointer;
 
     public void prepare(String url, int timeout) {
-        initialize(url, timeout);
+        pointer = initialize(url, timeout);
     }
 
     public void release() {
