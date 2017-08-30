@@ -51,13 +51,14 @@ class AVCPublisher {
         RTMP *rtmp;
 
     public:
+        AVCPublisher();
         ~AVCPublisher();
 
-        int initialize(char *url, int timeOut);
+        int initialize(int timeout);
 
-        int release() const;
+        int connect(char *url);
 
-        int connect();
+        int disconnect();
 
         int isConnected();
 

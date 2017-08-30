@@ -8,16 +8,9 @@ static JavaVM *jvm;
 static JNIEnv *jenv;
 
 static jlong
-libpublisher_initialize(JNIEnv *env, jobject thiz, jstring _url, jint timeout) {
-    const char *url = env->GetStringUTFChars(_url, 0);
-    char* url_copy = (char *) malloc(strlen(url) + 1);
-    strcpy(url_copy, url);
-
+libpublisher_initialize(JNIEnv *env, jobject thiz, jint timeout) {
     AVCPublisher *publisher = new AVCPublisher();
-    publisher->initialize(url_copy, timeout);
-
-    free(url_copy);
-    env->ReleaseStringUTFChars(_url, url);
+    publisher->initialize(timeout);
     return reinterpret_cast<long> (publisher);
 }
 
@@ -29,17 +22,29 @@ libpublisher_release(JNIEnv *env, jobject thiz, jlong pointer) {
 }
 
 static jint
-libpublisher_connect(JNIEnv *env, jobject thiz, jlong pointer) {
+libpublisher_connect(JNIEnv *env, jobject thiz, jlong pointer, jstring _url) {
+    const char *url = env->GetStringUTFChars(_url, 0);
+    char* url_copy = (char *) malloc(strlen(url) + 1);
+    strcpy(url_copy, url);
+
     AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
-    int ret = publisher->connect();
+    int ret = publisher->connect(url_copy);
+
+    free(url_copy);
+    env->ReleaseStringUTFChars(_url, url);
     return ret;
+}
+
+static jint
+libpublisher_disconnect(JNIEnv *env, jobject thiz, jlong pointer) {
+    AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
+    return publisher->disconnect();
 }
 
 static jint
 libpublisher_isConnected(JNIEnv *env, jobject thiz, jlong pointer) {
     AVCPublisher *publisher = reinterpret_cast<AVCPublisher *> (pointer);
-    int ret = publisher->isConnected();
-    return ret;
+    return publisher->isConnected();
 }
 
 static jint
@@ -67,9 +72,10 @@ libpublisher_sendAacData(JNIEnv *env, jobject thiz, jlong pointer,
 }
 
 static JNINativeMethod libyuv_methods[] = {
-        {"initialize",          "(Ljava/lang/String;I)J",    (void *) libpublisher_initialize},
+        {"initialize",          "(I)J",                      (void *) libpublisher_initialize},
         {"release",             "(J)I",                      (void *) libpublisher_release},
-        {"connect",             "(J)I",                      (void *) libpublisher_connect},
+        {"connect",             "(JLjava/lang/String;)I",    (void *) libpublisher_connect},
+        {"disconnect",          "(J)I",                      (void *) libpublisher_disconnect},
         {"isConnected",         "(J)I",                      (void *) libpublisher_isConnected},
         {"sendVideoData",       "(J[BIJ)I",                  (void *) libpublisher_sendVideoData},
         {"sendAacData",         "(J[BIJ)I",                  (void *) libpublisher_sendAacData},

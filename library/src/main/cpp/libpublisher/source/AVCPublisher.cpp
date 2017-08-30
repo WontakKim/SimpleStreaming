@@ -1,31 +1,26 @@
 #include <malloc.h>
 #include "AVCPublisher.h"
 
-AVCPublisher::~AVCPublisher() {
-    release();
+AVCPublisher::AVCPublisher() {
+    rtmp = RTMP_Alloc();
 }
 
-int AVCPublisher::initialize(char *url, int timeout) {
-    RTMP_LogSetLevel(RTMP_LOGDEBUG);
+AVCPublisher::~AVCPublisher() {
+    RTMP_Free(rtmp);
+}
 
-    rtmp = RTMP_Alloc();
+int AVCPublisher::initialize(int timeout) {
     RTMP_Init(rtmp);
     rtmp->Link.timeout = timeout;
-    RTMP_SetupURL(rtmp, url);
-    RTMP_EnableWrite(rtmp);
-
     debug_print("Initialized RTMP !!!");
 
     return 0;
 }
 
-int AVCPublisher::release() const {
-    RTMP_Close(rtmp);
-    RTMP_Free(rtmp);
-    return 0;
-}
+int AVCPublisher::connect(char *url) {
+    RTMP_SetupURL(rtmp, url);
+    RTMP_EnableWrite(rtmp);
 
-int AVCPublisher::connect() {
     if (!RTMP_Connect(rtmp, NULL)) {
         debug_print("Connect failure !!!");
         return -1;
@@ -40,6 +35,11 @@ int AVCPublisher::connect() {
 
     debug_print("Connected stream !!!");
 
+    return 0;
+}
+
+int AVCPublisher::disconnect() {
+    RTMP_Close(rtmp);
     return 0;
 }
 
