@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
@@ -16,6 +17,11 @@ import static android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT;
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     private static final String TAG = "CAMERA_PREVIEW";
+
+    public interface PreviewCallback {
+
+        void onPreviewFrame(byte[] data, Camera camera);
+    }
 
     private Camera camera;
     private int cameraType = CAMERA_FACING_FRONT;
@@ -30,6 +36,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private int previewOrientation = Configuration.ORIENTATION_PORTRAIT;
     private int previewRotation = 90;
 
+    private PreviewCallback callback;
+
     public CameraPreview(Context context) {
         this(context, null);
     }
@@ -41,14 +49,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-
         getHolder().addCallback(this);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-
         getHolder().removeCallback(this);
     }
 
@@ -80,18 +86,22 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 previewRotation = info.orientation % 360;
-                previewRotation = (360 - previewRotation) % 360;  // compensate the mirror
+                previewRotation = (360 - previewRotation) % 360; // compensate the mirror
             } else {
                 previewRotation = (info.orientation + 360) % 360;
             }
         } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 previewRotation = (info.orientation + 90) % 360;
-                previewRotation = (360 - previewRotation) % 360;  // compensate the mirror
+                previewRotation = (360 - previewRotation) % 360; // compensate the mirror
             } else {
                 previewRotation = (info.orientation + 270) % 360;
             }
         }
+    }
+
+    public void setPreviewCallback(PreviewCallback callback) {
+        this.callback = callback;
     }
 
     private Camera openCamera() {
@@ -163,13 +173,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         try {
             camera.setPreviewDisplay(getHolder());
-            camera.setPreviewCallbackWithBuffer(this);
+            camera.setPreviewCallback(this);
             camera.startPreview();
         } catch (Exception e) {
             Log.d(TAG, "Error starting camera preview: " + e.getMessage());
         }
-
-        camera.addCallbackBuffer(new byte[previewWidth * previewHeight * 3 / 2]);
 
         return true;
     }
@@ -220,6 +228,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        Log.d(TAG, "on Preview Frame !!!");
+        if (callback != null) {
+            callback.onPreviewFrame(data, camera);
+        }
     }
 }
