@@ -54,9 +54,9 @@ public:
     int writeVideoData(uint8_t *data, int length, long timestamp);
     int writeAudioData(uint8_t *data, int length, long timestamp);
 
-    RTMPPacket *buildH264SpsPpsPacket(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength);
-    RTMPPacket *buildH264VideoPacket(int nalType, uint8_t *data, int length, long timestamp);
-    RTMPPacket *buildH264AudioPacket(uint8_t *data, int length, long timestamp);
+    RTMPPacket *buildSpsPpsPacket(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength);
+    RTMPPacket *buildVideoPacket(int nalType, uint8_t *data, int length, long timestamp);
+    RTMPPacket *buildAudioPacket(uint8_t *data, int length, long timestamp);
 };
 
 #endif // FLV_MUXER_H

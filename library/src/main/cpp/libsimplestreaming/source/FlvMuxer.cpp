@@ -66,9 +66,9 @@ int FlvMuxer::writeVideoData(uint8_t *data, int length, long timestamp) {
         int ppsLength = 4;
         int spsLength = length - nalStartPrefixBytes - ppsLength;
 
-        packet = buildH264SpsPpsPacket(&data[0], spsLength, &data[spsLength + nalStartPrefixBytes], ppsLength);
+        packet = buildSpsPpsPacket(&data[0], spsLength, &data[spsLength + nalStartPrefixBytes], ppsLength);
     } else if (type == NAL_SLICE || type == NAL_SLICE_IDR) {
-        packet = buildH264VideoPacket(type, data, length, timestamp);
+        packet = buildVideoPacket(type, data, length, timestamp);
     }
 
     if (RTMP_IsConnected(rtmp)) {
@@ -82,7 +82,7 @@ int FlvMuxer::writeVideoData(uint8_t *data, int length, long timestamp) {
 }
 
 int FlvMuxer::writeAudioData(uint8_t *data, int length, long timestamp) {
-    RTMPPacket *packet = buildH264AudioPacket(data, length, timestamp);
+    RTMPPacket *packet = buildAudioPacket(data, length, timestamp);
 
     if (RTMP_IsConnected(rtmp)) {
         RTMP_SendPacket(rtmp, packet, TRUE);
@@ -95,7 +95,7 @@ int FlvMuxer::writeAudioData(uint8_t *data, int length, long timestamp) {
 }
 
 RTMPPacket *
-FlvMuxer::buildH264SpsPpsPacket(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength) {
+FlvMuxer::buildSpsPpsPacket(uint8_t *sps, int spsLength, uint8_t *pps, int ppsLength) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
@@ -147,7 +147,7 @@ FlvMuxer::buildH264SpsPpsPacket(uint8_t *sps, int spsLength, uint8_t *pps, int p
     return packet;
 }
 
-RTMPPacket *FlvMuxer::buildH264VideoPacket(int nalType, uint8_t *data, int length, long timestamp) {
+RTMPPacket *FlvMuxer::buildVideoPacket(int nalType, uint8_t *data, int length, long timestamp) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
@@ -182,7 +182,7 @@ RTMPPacket *FlvMuxer::buildH264VideoPacket(int nalType, uint8_t *data, int lengt
     return packet;
 }
 
-RTMPPacket *FlvMuxer::buildH264AudioPacket(uint8_t *data, int length, long timestamp) {
+RTMPPacket *FlvMuxer::buildAudioPacket(uint8_t *data, int length, long timestamp) {
     RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
     memset(packet, 0, sizeof(RTMPPacket));
 
