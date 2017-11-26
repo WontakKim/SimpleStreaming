@@ -26,8 +26,8 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
     private VideoEncoder videoEncoder;
     private AudioEncoder audioEncoder;
 
-    private AVCPublisher publisher;
-    private boolean isPublish;
+    private FlvMuxer flvMuxer;
+    private boolean isPlaying;
 
     private int previewWidth, previewHeight;
     private int orientation = ORIENTATION_PORTRAIT;
@@ -39,17 +39,15 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
     private Thread workThread;
     private boolean loop;
 
-    public SimpleStreaming() {
+    public SimpleStreaming(int width, int height) {
         videoColorFormat = chooseVideoEncoder();
+
+        previewWidth = width;
+        previewHeight = height;
     }
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public void setPreviewResolution(int width, int height) {
-        previewWidth = width;
-        previewHeight = height;
     }
 
     public void setFrontCamera(boolean isFront) {
@@ -64,17 +62,27 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         aspectRatio = ratio;
     }
 
+    public void setAudioEncoder(AudioEncoder encoder) {
+        audioEncoder = encoder;
+    }
+
+
+
+
+
     public void prepare() {
-        publisher = new AVCPublisher();
-        publisher.prepare();
+        flvMuxer = new FlvMuxer();
+        flvMuxer.prepare();
 
         Rect rc = getOutputRectangle();
 
         yuvI420Converter = new YuvI420Converter(rc.width(), rc.height());
+
         videoEncoder = new VideoEncoder(rc.width(), rc.height());
+        audioEncoder = new AudioEncoder.Builder().build();
 
         videoEncoder.setCallback(this);
-//        audioEncoder.setCallback(this);
+        audioEncoder.setCallback(this);
 
         workThread = new Thread("simple-streaming-thread") {
             @Override
@@ -106,12 +114,12 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
             return;
         }
 
-        int ret = publisher.connect(url);
+        int ret = flvMuxer.start(url);
         if (ret < 0) {
             return;
         }
 
-        isPublish = true;
+        isPlaying = true;
     }
 
     public void stop() {
@@ -121,12 +129,12 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         if (audioEncoder != null)
             audioEncoder.stop();
 
-        if (isPublish) {
+        if (isPlaying) {
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    publisher.release();
-                    isPublish = false;
+                    flvMuxer.release();
+                    isPlaying = false;
                     loop = false;
                     workThread.interrupt();
                 }
@@ -136,7 +144,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
     }
 
     public void putVideoData(byte[] data) {
-        if (!isPublish)
+        if (!isPlaying)
             return;
 
         byte[] proceededData = processVideoData(data);
@@ -145,7 +153,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
 
     @Override
     public void onEncodedVideoFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
-        if (!isPublish) {
+        if (!isPlaying) {
             return;
         }
 
@@ -156,7 +164,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    publisher.sendVideoData(bytes, bytes.length, bufferInfo.presentationTimeUs / 1000L);
+                    flvMuxer.writeVideoData(bytes, bytes.length, bufferInfo.presentationTimeUs / 1000L);
                 }
             };
             runnables.put(runnable);
@@ -166,16 +174,18 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
     }
 
     public void putAudioData(byte[] data) {
-        if (!isPublish)
+        if (!isPlaying) {
             return;
+        }
 
         audioEncoder.putData(data);
     }
 
     @Override
     public void onEncodedAudioFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
-        if (!isPublish)
+        if (!isPlaying) {
             return;
+        }
 
         final byte[] bytes = new byte[bufferInfo.size];
         buffer.get(bytes);
@@ -184,7 +194,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    publisher.sendAacData(bytes, bytes.length, bufferInfo.presentationTimeUs / 1000L);
+                    flvMuxer.writeAudioData(bytes, bytes.length, bufferInfo.presentationTimeUs / 1000L);
                 }
             };
             runnables.put(runnable);

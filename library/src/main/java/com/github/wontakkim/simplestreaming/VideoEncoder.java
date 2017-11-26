@@ -36,6 +36,14 @@ public class VideoEncoder extends MediaEncoder {
         this.height = height;
     }
 
+    public void setFrameRate(int frameRate) {
+        this.frameRate = frameRate;
+    }
+
+    public void setBitrate(int bitrate) {
+        this.bitrate = bitrate;
+    }
+
     @Override
     protected MediaFormat buildMediaFormat() {
         MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);

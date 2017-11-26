@@ -14,25 +14,57 @@ public class AudioEncoder extends MediaEncoder {
 
     private final String TAG = "AUDIO_ENCODER";
 
-    private String mimeType;
-    private int sampleRate;
+    public interface Callback {
+
+        void onEncodedAudioFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo);
+    }
+
+    public static class Builder {
+
+        public final int DEFAULT_SAMPLE_RATE = 44100;
+        public final int DEFAULT_BIT_RATE = 96000;
+
+        private int channelCount = CHANNEL_IN_DEFAULT;
+        private int sampleRate = DEFAULT_SAMPLE_RATE;
+        private int bitrate = DEFAULT_BIT_RATE;
+
+        public Builder setChannelCount(int channelCount) {
+            this.channelCount = channelCount;
+            return this;
+        }
+
+        public Builder setSampleRate(int sampleRate) {
+            this.sampleRate = sampleRate;
+            return this;
+        }
+
+        public Builder setBitrate(int bitrate) {
+            this.bitrate = bitrate;
+            return this;
+        }
+
+        public AudioEncoder build() {
+            return new AudioEncoder(channelCount, sampleRate, bitrate);
+        }
+    }
+
     private int channelCount;
+    private int sampleRate;
     private int bitrate;
 
     private Callback callback;
 
-    public AudioEncoder(String mimeType, int sampleRate, int channelCount, int bitrate) {
-        this.mimeType = mimeType;
-        this.sampleRate = sampleRate;
+    private AudioEncoder(int channelCount, int sampleRate, int bitrate) {
         this.channelCount = channelCount;
+        this.sampleRate = sampleRate;
         this.bitrate = bitrate;
     }
 
     @Override
     protected MediaFormat buildMediaFormat() {
-        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, CHANNEL_IN_DEFAULT);
+        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount);
         format.setInteger(KEY_MAX_INPUT_SIZE, 0);
-        format.setInteger(KEY_BIT_RATE, 96000);
+        format.setInteger(KEY_BIT_RATE, bitrate);
         return format;
     }
 
@@ -47,8 +79,8 @@ public class AudioEncoder extends MediaEncoder {
             callback.onEncodedAudioFrame(buffer, bufferInfo);
     }
 
-    public interface Callback {
 
-        void onEncodedAudioFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo);
+    public void setCallback(Callback callback) {
+        this.callback = callback;
     }
 }
