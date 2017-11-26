@@ -3,23 +3,19 @@
 
 FlvMuxer::FlvMuxer() {
     rtmp = RTMP_Alloc();
+    RTMP_Init(rtmp);
 }
 
 FlvMuxer::~FlvMuxer() {
     RTMP_Free(rtmp);
 }
 
-int FlvMuxer::initialize(int timeout) {
-    RTMP_Init(rtmp);
-    rtmp->Link.timeout = timeout;
-    debug_print("Initialized RTMP !!!");
-    return 0;
-}
-
-int FlvMuxer::start(char *url) {
+int FlvMuxer::start(char *url, int timeout) {
     if (RTMP_IsConnected(rtmp)) {
         stop();
     }
+
+    rtmp->Link.timeout = timeout;
 
     RTMP_SetupURL(rtmp, url);
     RTMP_EnableWrite(rtmp);

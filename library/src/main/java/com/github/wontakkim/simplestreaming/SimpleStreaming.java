@@ -66,10 +66,6 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         audioEncoder = encoder;
     }
 
-
-
-
-
     public void prepare() {
         flvMuxer = new FlvMuxer();
         flvMuxer.prepare();
@@ -114,7 +110,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
             return;
         }
 
-        int ret = flvMuxer.start(url);
+        int ret = flvMuxer.start(url, 3000);
         if (ret < 0) {
             return;
         }

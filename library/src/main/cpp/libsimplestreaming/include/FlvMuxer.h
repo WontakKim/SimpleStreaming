@@ -44,12 +44,9 @@ private:
 
 public:
     FlvMuxer();
-
     ~FlvMuxer();
 
-    int initialize(int timeout);
-
-    int start(char *url);
+    int start(char *url, int timeout);
     int stop();
 
     int isPlaying();

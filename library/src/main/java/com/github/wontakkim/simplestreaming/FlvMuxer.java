@@ -5,11 +5,7 @@ public class FlvMuxer {
     private long pointer;
 
     public void prepare() {
-        prepare(0);
-    }
-
-    public void prepare(int timeout) {
-        pointer = initialize(timeout);
+        pointer = initialize();
     }
 
     public void release() {
@@ -17,11 +13,11 @@ public class FlvMuxer {
         pointer = 0;
     }
 
-    public int start(String url) throws IllegalStateException {
+    public int start(String url, int timeout) throws IllegalStateException {
         if (pointer == 0)
             throw new IllegalStateException("FlvMuxer is not ready.");
 
-        return start(pointer, url);
+        return start(pointer, url, timeout);
     }
 
     public int stop() throws IllegalStateException {
@@ -52,9 +48,9 @@ public class FlvMuxer {
         return writeAudioData(pointer, data, length, timestamp);
     }
 
-    private native long initialize(int timeout);
+    private native long initialize();
     private native int release(long pointer);
-    private native int start(long pointer, String url);
+    private native int start(long pointer, String url, int timeout);
     private native int stop(long pointer);
     private native int isPlaying(long pointer);
     private native int writeVideoData(long pointer, byte[] data, int length, long timestamp);

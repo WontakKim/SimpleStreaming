@@ -8,9 +8,7 @@ static JavaVM *jvm;
 static JNIEnv *jenv;
 
 static jlong
-libsimplestreaming_initialize(JNIEnv *env, jobject thiz, jint timeout) {
-    FlvMuxer *flvMuxer = new FlvMuxer();
-    flvMuxer->initialize(timeout);
+libsimplestreaming_initialize(JNIEnv *env, jobject thiz) {
     return reinterpret_cast<long> (new FlvMuxer());
 }
 
@@ -22,13 +20,13 @@ libsimplestreaming_release(JNIEnv *env, jobject thiz, jlong pointer) {
 }
 
 static jint
-libsimplestreaming_start(JNIEnv *env, jobject thiz, jlong pointer, jstring _url) {
+libsimplestreaming_start(JNIEnv *env, jobject thiz, jlong pointer, jstring _url, jint timeout) {
     const char *url = env->GetStringUTFChars(_url, 0);
     char* url_copy = (char *) malloc(strlen(url) + 1);
     strcpy(url_copy, url);
 
     FlvMuxer *flvMuxer = reinterpret_cast<FlvMuxer *> (pointer);
-    int ret = flvMuxer->start(url_copy);
+    int ret = flvMuxer->start(url_copy, timeout);
 
     free(url_copy);
     env->ReleaseStringUTFChars(_url, url);
@@ -72,9 +70,9 @@ libsimplestreaming_writeAudioData(JNIEnv *env, jobject thiz, jlong pointer,
 }
 
 static JNINativeMethod libsimplestreaming_methods[] = {
-        {"initialize",          "(I)J",                      (void *) libsimplestreaming_initialize    },
+        {"initialize",          "()J",                       (void *) libsimplestreaming_initialize    },
         {"release",             "(J)I",                      (void *) libsimplestreaming_release       },
-        {"start",               "(JLjava/lang/String;)I",    (void *) libsimplestreaming_start         },
+        {"start",               "(JLjava/lang/String;I)I",   (void *) libsimplestreaming_start         },
         {"stop",                "(J)I",                      (void *) libsimplestreaming_stop          },
         {"isPlaying",           "(J)I",                      (void *) libsimplestreaming_isPlaying     },
         {"writeVideoData",      "(J[BIJ)I",                  (void *) libsimplestreaming_writeVideoData},
