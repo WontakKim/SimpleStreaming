@@ -15,8 +15,6 @@ import static android.media.MediaFormat.KEY_MAX_INPUT_SIZE;
 
 public class VideoEncoder extends MediaEncoder {
 
-    private final String TAG = "VIDEO_ENCODER";
-
     public final int DEFAULT_FRAME_RATE = 30;
     public final int DEFAULT_BIT_RATE = 1000000;
 
@@ -62,8 +60,9 @@ public class VideoEncoder extends MediaEncoder {
 
     @Override
     protected void onEncodedFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
-        if (callback != null)
+        if (callback != null) {
             callback.onEncodedVideoFrame(buffer, bufferInfo);
+        }
     }
 
     public void setCallback(Callback callback) {

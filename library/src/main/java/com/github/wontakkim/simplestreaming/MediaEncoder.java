@@ -17,8 +17,9 @@ public abstract class MediaEncoder {
     private LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue();
 
     synchronized public void start() throws IOException {
-        if (loop)
+        if (loop) {
             return;
+        }
 
         codec = buildMediaCodec();
 
@@ -41,8 +42,9 @@ public abstract class MediaEncoder {
     }
 
     public void putData(byte[] data) {
-        if (!loop)
+        if (!loop) {
             return;
+        }
 
         try {
             queue.put(data);

@@ -12,8 +12,6 @@ import static android.media.MediaFormat.KEY_MAX_INPUT_SIZE;
 
 public class AudioEncoder extends MediaEncoder {
 
-    private final String TAG = "AUDIO_ENCODER";
-
     public interface Callback {
 
         void onEncodedAudioFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo);
@@ -75,8 +73,9 @@ public class AudioEncoder extends MediaEncoder {
 
     @Override
     protected void onEncodedFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
-        if (callback != null)
+        if (callback != null) {
             callback.onEncodedAudioFrame(buffer, bufferInfo);
+        }
     }
 
 
