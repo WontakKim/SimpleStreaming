@@ -16,7 +16,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
-public class CameraFragment extends Fragment implements CameraPreview.PreviewCallback {
+public class CameraFragment extends Fragment implements CameraPreview.PreviewCallback, AudioGatherer.Callback {
 
     @BindView(R.id.camera_preview)
     CameraPreview preview;
@@ -27,6 +27,7 @@ public class CameraFragment extends Fragment implements CameraPreview.PreviewCal
     private Unbinder unbinder;
 
     private SimpleStreaming streaming;
+    private AudioGatherer audioGatherer;
     private boolean isPlaying = false;
 
     public static CameraFragment newInstance() {
@@ -51,6 +52,8 @@ public class CameraFragment extends Fragment implements CameraPreview.PreviewCal
         streaming.setUrl("rtmp://127.0.0.1:1935/live/livestream");
         streaming.prepare();
 
+        audioGatherer = new AudioGatherer();
+
         return view;
     }
 
@@ -62,14 +65,27 @@ public class CameraFragment extends Fragment implements CameraPreview.PreviewCal
 
     @OnClick(R.id.fab_play)
     public void onPlayClick() {
-        isPlaying = !isPlaying;
-        playFab.setImageResource((!isPlaying) ? R.drawable.ic_play_arrow : R.drawable.ic_stop);
-
         streaming.start();
+        audioGatherer.start(this);
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         streaming.putVideoData(data);
+    }
+
+    @Override
+    public void onAudioStarted(long milliseconds) {
+
+    }
+
+    @Override
+    public void onAudioStopped() {
+
+    }
+
+    @Override
+    public void onAudioData(byte[] data) {
+        streaming.putAudioData(data);
     }
 }
