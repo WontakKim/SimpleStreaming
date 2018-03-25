@@ -11,32 +11,45 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
+import static android.media.AudioFormat.CHANNEL_IN_DEFAULT;
 
 public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Callback {
 
     private static final String TAG = "SIMPLE_STREAMING";
 
+    public static final int DEFAULT_TIMEOUT_MILLIS = 3000;
+
     private String url;
+    private int timeoutMillis = DEFAULT_TIMEOUT_MILLIS;
 
-    private MediaCodecInfo mediaCodecInfo;
-    private int videoColorFormat;
-
-    private YuvI420Converter yuvI420Converter;
-
-    private VideoEncoder videoEncoder;
-    private AudioEncoder audioEncoder;
-
-    private FlvMuxer flvMuxer;
-    private boolean isPlaying;
-
+    // Preview properties
     private int previewWidth, previewHeight;
     private int orientation = ORIENTATION_PORTRAIT;
     private boolean isFrontCamera = true;
     private double aspectRatio;
 
-    private LinkedBlockingQueue<Runnable> runnables = new LinkedBlockingQueue();
+    // Video properties
+    private int videoColorFormat;
+    private int videoFrameRate = VideoEncoder.DEFAULT_FRAME_RATE;
+    private int videoBitRate = VideoEncoder.DEFAULT_BIT_RATE;
 
+    // Audio properties
+    private int audioChannelCount = CHANNEL_IN_DEFAULT;
+    private int audioSampleRate = AudioEncoder.DEFAULT_SAMPLE_RATE;
+    private int audioBitRate = AudioEncoder.DEFAULT_BIT_RATE;
+
+    private MediaCodecInfo mediaCodecInfo;
+
+    private FlvMuxer flvMuxer;
+
+    private VideoEncoder videoEncoder;
+    private AudioEncoder audioEncoder;
+
+    private YuvI420Converter yuvI420Converter;
+
+    private LinkedBlockingQueue<Runnable> runnables = new LinkedBlockingQueue();
     private Thread workThread;
+    private boolean isPlaying;
     private boolean loop;
 
     public SimpleStreaming(int width, int height) {
@@ -50,37 +63,71 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         this.url = url;
     }
 
-    public void setFrontCamera(boolean isFront) {
-        isFrontCamera = isFront;
+    public void setTimeoutMillis(int millis) {
+        timeoutMillis = millis;
     }
 
     public void setOrientation(int orientation) {
         this.orientation = orientation;
     }
 
+    public void setFrontCamera(boolean isFront) {
+        isFrontCamera = isFront;
+    }
+
     public void setAspectRatio(double ratio) {
         aspectRatio = ratio;
     }
 
-    public void setAudioEncoder(AudioEncoder encoder) {
-        audioEncoder = encoder;
+    public void setVideoFrameRate(int frameRate) {
+        videoFrameRate = frameRate;
+    }
+
+    public void setVideoBitRate(int bitrate) {
+        videoBitRate = bitrate;
+    }
+
+    public void setAudioChannelCount(int count) {
+        audioChannelCount = count;
+    }
+
+    public void setAudioSampleRate(int sampleRate) {
+        audioSampleRate = sampleRate;
+    }
+
+    public void setAudioBitRate(int bitrate) {
+        audioBitRate = bitrate;
     }
 
     public void prepare() {
+        Rect outputRectangle = getOutputRectangle();
+
         flvMuxer = new FlvMuxer();
         flvMuxer.prepare();
 
-        Rect rc = getOutputRectangle();
+        videoEncoder = new VideoEncoder(
+                outputRectangle.width(),
+                outputRectangle.height(),
+                videoFrameRate,
+                videoBitRate
+        );
 
-        yuvI420Converter = new YuvI420Converter(rc.width(), rc.height());
-
-        videoEncoder = new VideoEncoder(rc.width(), rc.height());
-        audioEncoder = new AudioEncoder.Builder().build();
+        audioEncoder = new AudioEncoder(
+                audioChannelCount,
+                audioSampleRate,
+                audioBitRate
+        );
 
         videoEncoder.setCallback(this);
         audioEncoder.setCallback(this);
 
+        yuvI420Converter = new YuvI420Converter(
+                outputRectangle.width(),
+                outputRectangle.height()
+        );
+
         workThread = new Thread("simple-streaming-thread") {
+
             @Override
             public void run() {
                 while (loop && !Thread.interrupted()) {
@@ -98,7 +145,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         workThread.start();
 
         Log.d(TAG, "Prepared SimpleStreaming.");
-        Log.d(TAG, "\tV - output_width : " + rc.width() + "\toutput_height : " + rc.height());
+        Log.d(TAG, String.format("Preview width %d, height %d.", outputRectangle.width(), outputRectangle.height()));
     }
 
     public void start() {
@@ -110,7 +157,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
             return;
         }
 
-        int ret = flvMuxer.start(url, 3000);
+        int ret = flvMuxer.start(url, timeoutMillis);
         if (ret < 0) {
             return;
         }

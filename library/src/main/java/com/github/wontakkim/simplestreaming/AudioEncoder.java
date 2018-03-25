@@ -6,44 +6,17 @@ import android.media.MediaFormat;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static android.media.AudioFormat.CHANNEL_IN_DEFAULT;
 import static android.media.MediaFormat.KEY_BIT_RATE;
 import static android.media.MediaFormat.KEY_MAX_INPUT_SIZE;
 
 public class AudioEncoder extends MediaEncoder {
 
+    public static final int DEFAULT_SAMPLE_RATE = 44100;
+    public static final int DEFAULT_BIT_RATE = 96000;
+
     public interface Callback {
 
         void onEncodedAudioFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo);
-    }
-
-    public static class Builder {
-
-        public final int DEFAULT_SAMPLE_RATE = 44100;
-        public final int DEFAULT_BIT_RATE = 96000;
-
-        private int channelCount = CHANNEL_IN_DEFAULT;
-        private int sampleRate = DEFAULT_SAMPLE_RATE;
-        private int bitrate = DEFAULT_BIT_RATE;
-
-        public Builder setChannelCount(int channelCount) {
-            this.channelCount = channelCount;
-            return this;
-        }
-
-        public Builder setSampleRate(int sampleRate) {
-            this.sampleRate = sampleRate;
-            return this;
-        }
-
-        public Builder setBitrate(int bitrate) {
-            this.bitrate = bitrate;
-            return this;
-        }
-
-        public AudioEncoder build() {
-            return new AudioEncoder(channelCount, sampleRate, bitrate);
-        }
     }
 
     private int channelCount;
@@ -52,7 +25,7 @@ public class AudioEncoder extends MediaEncoder {
 
     private Callback callback;
 
-    private AudioEncoder(int channelCount, int sampleRate, int bitrate) {
+    public AudioEncoder(int channelCount, int sampleRate, int bitrate) {
         this.channelCount = channelCount;
         this.sampleRate = sampleRate;
         this.bitrate = bitrate;
@@ -77,7 +50,6 @@ public class AudioEncoder extends MediaEncoder {
             callback.onEncodedAudioFrame(buffer, bufferInfo);
         }
     }
-
 
     public void setCallback(Callback callback) {
         this.callback = callback;
