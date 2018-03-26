@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         RxPermissions permissions = new RxPermissions(this);
-        permissions.request(Manifest.permission.CAMERA)
+        permissions.request(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(isGranted -> {
                     if (isGranted) {
