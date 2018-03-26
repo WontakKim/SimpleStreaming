@@ -34,7 +34,6 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
     private int videoBitRate = VideoEncoder.DEFAULT_BIT_RATE;
 
     // Audio properties
-    private int audioChannelCount = CHANNEL_IN_DEFAULT;
     private int audioSampleRate = AudioEncoder.DEFAULT_SAMPLE_RATE;
     private int audioBitRate = AudioEncoder.DEFAULT_BIT_RATE;
 
@@ -87,10 +86,6 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         videoBitRate = bitrate;
     }
 
-    public void setAudioChannelCount(int count) {
-        audioChannelCount = count;
-    }
-
     public void setAudioSampleRate(int sampleRate) {
         audioSampleRate = sampleRate;
     }
@@ -113,7 +108,6 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         );
 
         audioEncoder = new AudioEncoder(
-                audioChannelCount,
                 audioSampleRate,
                 audioBitRate
         );

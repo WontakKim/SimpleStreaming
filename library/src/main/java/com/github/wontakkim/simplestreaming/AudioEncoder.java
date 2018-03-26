@@ -1,5 +1,6 @@
 package com.github.wontakkim.simplestreaming;
 
+import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 
@@ -19,21 +20,19 @@ public class AudioEncoder extends MediaEncoder {
         void onEncodedAudioFrame(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo);
     }
 
-    private int channelCount;
     private int sampleRate;
     private int bitrate;
 
     private Callback callback;
 
-    public AudioEncoder(int channelCount, int sampleRate, int bitrate) {
-        this.channelCount = channelCount;
+    public AudioEncoder(int sampleRate, int bitrate) {
         this.sampleRate = sampleRate;
         this.bitrate = bitrate;
     }
 
     @Override
     protected MediaFormat buildMediaFormat() {
-        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount);
+        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 1);
         format.setInteger(KEY_MAX_INPUT_SIZE, 0);
         format.setInteger(KEY_BIT_RATE, bitrate);
         return format;

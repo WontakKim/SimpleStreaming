@@ -200,8 +200,9 @@ RTMPPacket *FlvMuxer::buildAudioPacket(uint8_t *data, int length, long timestamp
 
     /* AAC RAW Data */
     // FLV audio sequence header/config frame (starts with 0xAF 0x00)
+    // AAC raw data (starts with 0xAF 0x01)
     body[0] = 0xAF;
-    body[1] = 0x00;
+    body[1] = 0x01;
 
     /* AAC Data */
     memcpy(&body[2], data, length);

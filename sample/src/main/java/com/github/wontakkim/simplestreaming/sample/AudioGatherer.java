@@ -35,7 +35,7 @@ public class AudioGatherer {
     private long audioStartTime;
 
     public AudioGatherer() {
-        this(DEFAULT_SAMPLE_RATE, DEFAULT_SAMPLE_RATE);
+        this(DEFAULT_SAMPLE_RATE, SAMPLES_PER_FRAME);
     }
 
     public AudioGatherer(int sampleRate, int samplesPerFrame) {
@@ -89,8 +89,9 @@ public class AudioGatherer {
             audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, samplesPerFrame);
             buffer = new byte[samplesPerFrame];
 
-            if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED)
+            if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
                 audioRecord.startRecording();
+            }
 
             Log.d(TAG, "Audio start recording");
 
