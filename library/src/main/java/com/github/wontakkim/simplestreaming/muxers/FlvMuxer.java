@@ -1,4 +1,4 @@
-package com.github.wontakkim.simplestreaming;
+package com.github.wontakkim.simplestreaming.muxers;
 
 public class FlvMuxer {
 

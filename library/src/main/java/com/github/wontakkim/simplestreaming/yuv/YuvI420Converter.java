@@ -1,4 +1,4 @@
-package com.github.wontakkim.simplestreaming;
+package com.github.wontakkim.simplestreaming.yuv;
 
 public class YuvI420Converter {
 

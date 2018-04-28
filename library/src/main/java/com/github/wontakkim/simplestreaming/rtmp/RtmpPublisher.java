@@ -1,4 +1,4 @@
-package com.github.wontakkim.simplestreaming;
+package com.github.wontakkim.simplestreaming.rtmp;
 
 import android.graphics.Rect;
 import android.media.MediaCodec;
@@ -6,14 +6,18 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.util.Log;
 
+import com.github.wontakkim.simplestreaming.encoders.AudioEncoder;
+import com.github.wontakkim.simplestreaming.muxers.FlvMuxer;
+import com.github.wontakkim.simplestreaming.encoders.VideoEncoder;
+import com.github.wontakkim.simplestreaming.yuv.YuvI420Converter;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
-import static android.media.AudioFormat.CHANNEL_IN_DEFAULT;
 
-public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Callback {
+public class RtmpPublisher implements VideoEncoder.Callback, AudioEncoder.Callback {
 
     private static final String TAG = "SIMPLE_STREAMING";
 
@@ -51,7 +55,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
     private boolean isPlaying;
     private boolean loop;
 
-    public SimpleStreaming(int width, int height) {
+    public RtmpPublisher(int width, int height) {
         videoColorFormat = chooseVideoEncoder();
 
         previewWidth = width;
@@ -138,7 +142,7 @@ public class SimpleStreaming implements VideoEncoder.Callback, AudioEncoder.Call
         loop = true;
         workThread.start();
 
-        Log.d(TAG, "Prepared SimpleStreaming.");
+        Log.d(TAG, "Prepared RtmpPublisher.");
         Log.d(TAG, String.format("Preview width %d, height %d.", outputRectangle.width(), outputRectangle.height()));
     }
 

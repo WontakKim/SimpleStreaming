@@ -9,7 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.github.wontakkim.simplestreaming.SimpleStreaming;
+import com.github.wontakkim.simplestreaming.rtmp.RtmpPublisher;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -26,7 +26,7 @@ public class CameraFragment extends Fragment implements CameraPreview.PreviewCal
 
     private Unbinder unbinder;
 
-    private SimpleStreaming streaming;
+    private RtmpPublisher streaming;
     private AudioGatherer audioGatherer;
     private boolean isPlaying = false;
 
@@ -48,7 +48,7 @@ public class CameraFragment extends Fragment implements CameraPreview.PreviewCal
         preview.setPreviewResolution(640, 480);
         preview.setPreviewCallback(this);
 
-        streaming = new SimpleStreaming(640, 480);
+        streaming = new RtmpPublisher(640, 480);
         streaming.setUrl("rtmp://127.0.0.1:1935/live/livestream");
         streaming.prepare();
 

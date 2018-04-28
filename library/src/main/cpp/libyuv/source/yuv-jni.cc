@@ -394,7 +394,7 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
 
-    jclass clz = jenv->FindClass("com/github/wontakkim/simplestreaming/YuvI420Converter");
+    jclass clz = jenv->FindClass("com/github/wontakkim/simplestreaming/vuv/YuvI420Converter");
     if (clz == NULL) {
         return JNI_ERR;
     }

@@ -1,4 +1,4 @@
-package com.github.wontakkim.simplestreaming;
+package com.github.wontakkim.simplestreaming.encoders;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
